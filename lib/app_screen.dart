@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:fruits_recognizer/constants.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -16,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   XFile? image;
-  String result = '';
+  String result = '', phVal = '';
   List<String> fruitsName = <String>[];
   List<String> defectName = <String>[];
   late CameraController camController;
@@ -41,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final options1 = LocalLabelerOptions(modelPath: model1, confidenceThreshold: 0.7);
     recognizer = GoogleMlKit.vision.imageLabeler(options1);
 
-    const model2 = "flutter_assets/assets/defect.tflite";
+    const model2 = "flutter_assets/assets/defects.tflite";
     final options2 = LocalLabelerOptions(modelPath: model2, confidenceThreshold: 0.7);
     defectDetector = GoogleMlKit.vision.imageLabeler(options2);
   }
@@ -96,6 +97,20 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     loadModel();
     loadLabels();
+
+    Timer.periodic(const Duration(seconds: 10), (timer) async {
+      var url = Uri.https('esinebd.com', '/projects/sensors/read.php');
+      var response = await http.get(url);
+      if (response.statusCode == 200) {
+        var respTxt = response.body.toString();
+        if (respTxt.contains("ph=")) {
+          int i = respTxt.indexOf("ph=");
+          respTxt = respTxt.replaceRange(0, i + 3, '');
+          phVal = respTxt.replaceFirst('\$<br>', '');
+          setState(() {});
+        }
+      }
+    });
   }
 
   @override
@@ -182,6 +197,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 10),
+              Text("pH Value: $phVal", style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               const Text("Result: ", style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),

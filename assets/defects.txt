@@ -1,6 +1,5 @@
-gun
-knife
-rifle
-shotgun
-sniper
-none
+Infected
+Unhealthy
+Eaten
+Damaged
+Dark Spot
